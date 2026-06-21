@@ -1,0 +1,6 @@
+{
+  "name": "Výkaz odpracovaných hodin",
+  "description": "Měsíční výkaz odpracovaných hodin s příchody, odchody, přerušením a obědovými pauzami podle českého kalendáře.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
