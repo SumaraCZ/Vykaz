@@ -1,0 +1,55 @@
+# Šablona pro automatické sestavení a nasazení na GitHub Pages
+name: Sestavit a nasadit na GitHub Pages
+
+on:
+  push:
+    # Spustit při nahrání (push) do hlavní větve (main nebo master)
+    branches: ["main", "master"]
+
+  # Umožňuje spustit workflow ručně z karty Actions na GitHubu
+  workflow_dispatch:
+
+# Nastavení oprávnění pro GITHUB_TOKEN potřebná pro nasazení
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Zabrání souběžnému spuštění více nasazení najednou
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Klonování repozitáře
+        uses: actions/checkout@v4
+
+      - name: Nastavení Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalace závislostí
+        run: npm install
+
+      - name: Sestavení projektu (Vite Build)
+        run: npm run build
+
+      - name: Nastavení GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Nahrání hotového buildu jako artefakt
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Nasazení na GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
