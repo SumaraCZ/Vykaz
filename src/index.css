@@ -1,1 +1,55 @@
 @import "tailwindcss";
+
+@media print {
+  /* Skrýt všechny stíny, zašedlé pozadí a nepotřebné okraje z prohlížeče */
+  body {
+    background-color: white !important;
+    background-image: none !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Optimalizace ohraničení karet a tabulek */
+  .shadow-xs, .shadow-md, .shadow-lg, .shadow-sm {
+    box-shadow: none !important;
+  }
+
+  .border, .border-slate-200 {
+    border-color: #cbd5e1 !important; /* Jemná, vytisknutelná šedá */
+  }
+
+  /* Zamezit nechtěnému zalomení jednotlivých řádků uprostřed stránky */
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Přesvědčivé skrytí všech elementů označených pro skrytí při tisku */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Nucené zobrazení skrytých tiskových elementů */
+  .print\:block {
+    display: block !important;
+  }
+
+  .print\:inline {
+    display: inline !important;
+  }
+
+  .print\:flex {
+    display: flex !important;
+  }
+}
+
