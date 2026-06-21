@@ -611,26 +611,7 @@ export default function App() {
               <Printer className="w-4 h-4 text-emerald-200" />
               <span className="font-bold">Tisknout / Uložit PDF</span>
             </button>
-            <button
-              onClick={handleDownloadPDF}
-              disabled={isGeneratingPDF}
-              className={`flex items-center space-x-2 px-4 py-2 text-white rounded-lg text-sm font-semibold transition shadow-md ${
-                isGeneratingPDF 
-                  ? "bg-slate-400 cursor-not-allowed" 
-                  : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100"
-              }`}
-              id="btn-print"
-              title="Stáhnout měsíční výkaz ve formátu PDF (Automatický export, může mít v některých prohlížečích omezení)"
-            >
-              {isGeneratingPDF ? (
-                <RefreshCw className="w-4 h-4 text-white animate-spin" />
-              ) : (
-                <Download className="w-4 h-4 text-indigo-200" />
-              )}
-              <span className="font-bold">
-                {isGeneratingPDF ? "Generuji..." : "Stáhnout PDF"}
-              </span>
-            </button>
+            {/* Tisknout / Uložit PDF button is above */}
           </div>
         </div>
       </header>
