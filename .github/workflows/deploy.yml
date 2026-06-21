@@ -40,7 +40,7 @@ jobs:
         run: npm install
 
       - name: Sestavení projektu (Vite Build)
-        run: npm run build
+        run: npm run build -- --base=/${{ github.event.repository.name }}/
 
       - name: Nastavení GitHub Pages
         uses: actions/configure-pages@v4
