@@ -671,7 +671,7 @@ export default function App() {
             <div className="flex items-center space-x-2">
               <button 
                 onClick={handlePrevMonth}
-                className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 transition"
+                className="w-11 h-11 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 transition touch-manipulation shrink-0"
                 title="Předchozí měsíc"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -681,7 +681,7 @@ export default function App() {
                 <select
                   value={currentMonth}
                   onChange={(e) => setCurrentMonth(parseInt(e.target.value))}
-                  className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-base font-semibold text-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-base font-semibold text-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500 h-11"
                 >
                   {CZECH_MONTHS.map((m, idx) => (
                     <option key={idx} value={idx + 1}>{m}</option>
@@ -691,7 +691,7 @@ export default function App() {
                 <select
                   value={currentYear}
                   onChange={(e) => setCurrentYear(parseInt(e.target.value))}
-                  className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-base font-semibold text-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-base font-semibold text-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500 h-11"
                 >
                   {Array.from({ length: 11 }, (_, i) => 2020 + i).map((y) => (
                     <option key={y} value={y}>{y}</option>
@@ -701,7 +701,7 @@ export default function App() {
 
               <button 
                 onClick={handleNextMonth}
-                className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 transition"
+                className="w-11 h-11 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 transition touch-manipulation shrink-0"
                 title="Následující měsíc"
               >
                 <ChevronRight className="w-5 h-5" />
@@ -875,7 +875,9 @@ export default function App() {
 
         {/* Timesheet Days List / Table Container */}
         <div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden print:shadow-none print:border-none">
-          <div className="overflow-x-auto">
+          
+          {/* Desktop view table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse" id="timesheet-table">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider print:bg-slate-100">
@@ -962,7 +964,7 @@ export default function App() {
                           <span className={`text-base ${rec.isWeekend ? 'text-slate-400 font-medium' : 'text-slate-800'}`}>
                             {dayInt}.{currentMonth}.
                           </span>
-                          <span className={`text-xs ml-1 font-semibold uppercase ${rec.isWeekend ? 'text-rose-400' : 'text-slate-500'}`}>
+                          <span className={`text-xs ml-1 font-semibold uppercase ${rec.isWeekend ? 'text-rose-450' : 'text-slate-500'}`}>
                             {rec.dayNameShort}
                           </span>
                         </div>
@@ -1156,6 +1158,289 @@ export default function App() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile view tactile layout optimized for touch screens and mobile phones */}
+          <div className="block md:hidden bg-slate-50 p-2 sm:p-3 space-y-3 print:hidden">
+            {Object.keys(records).sort().map(dateStr => {
+              const rec = records[dateStr];
+              const { exactTimeStr, roundedHours } = calculateDailyHours(
+                rec.arrival,
+                rec.departure,
+                rec.interruptionFrom,
+                rec.interruptionTo,
+                rec.lunchTaken
+              );
+
+              // Extract date parts
+              const dayObj = new Date(dateStr);
+              const dayInt = dayObj.getDate();
+              const isCurrentDay = (() => {
+                const today = new Date();
+                return today.getFullYear() === currentYear &&
+                        (today.getMonth() + 1) === currentMonth &&
+                        today.getDate() === dayInt;
+              })();
+
+              // Determinations
+              let cardBg = "bg-white";
+              let cardBorder = "border-slate-200/80";
+              let dayBadgeBg = "bg-indigo-50 text-indigo-700 border-indigo-150";
+              let dayTypeLabel = "Pracovní fond";
+              
+              if (rec.isWeekend) {
+                cardBg = "bg-slate-50/50";
+                cardBorder = "border-slate-200/30";
+                dayBadgeBg = "bg-slate-100 text-slate-500 border-slate-200";
+                dayTypeLabel = "Víkend";
+              }
+              if (rec.isHoliday) {
+                cardBg = "bg-amber-50/5";
+                cardBorder = "border-amber-200/40";
+                dayBadgeBg = "bg-amber-50 text-amber-700 border-amber-200";
+                dayTypeLabel = `Svátek`;
+              }
+              if (isCurrentDay) {
+                cardBorder = "border-indigo-400 ring-1 ring-indigo-400/20";
+              }
+
+              const isOvertime9 = roundedHours > 9;
+              if (rec.arrival && rec.departure && isOvertime9) {
+                cardBg = "bg-rose-50/30";
+                cardBorder = "border-rose-200";
+              }
+
+              return (
+                <div 
+                  key={`mob-${dateStr}`} 
+                  className={`${cardBg} rounded-xl border ${cardBorder} p-3 sm:p-4 transition-all shadow-xs duration-200`}
+                >
+                  {/* Top line of card: Date and status switch */}
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-100/60 pb-3">
+                    
+                    {/* Left: Date badge and day status */}
+                    <div className="flex items-center space-x-3">
+                      {/* Date Badge: Large touch-friendly size */}
+                      <div className={`flex flex-col items-center justify-center w-11 h-11 rounded-xl border font-mono ${dayBadgeBg} shrink-0`}>
+                        <span className="text-base font-black leading-none">{dayInt}.</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">{rec.dayNameShort}</span>
+                      </div>
+                      
+                      <div className="flex flex-col">
+                        <div className="flex items-center space-x-1">
+                          {isCurrentDay && (
+                            <span className="bg-indigo-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm mr-1.5">DNES</span>
+                          )}
+                          <span className={`text-[11px] font-bold uppercase tracking-wide ${rec.isWeekend ? 'text-slate-400' : 'text-slate-450'}`}>
+                            {dayTypeLabel}
+                          </span>
+                        </div>
+                        {rec.isHoliday ? (
+                          <span className="text-xs font-bold text-amber-800 line-clamp-1 max-w-[170px]">
+                            {rec.holidayName}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-500 font-medium">
+                            {rec.isWeekend ? "Volný den" : `Fund ${settings.dailyWorkFund} h`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Toggle active switch (iOS-style toggle switch) */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400 font-bold hidden sm:inline">Aktivní</span>
+                      <button
+                        type="button"
+                        onClick={() => updateDayField(dateStr, 'active', !rec.active)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                          rec.active ? 'bg-indigo-650' : 'bg-slate-200'
+                        }`}
+                        aria-label="Toggle active reporting"
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+                            rec.active ? 'translate-x-5' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                  </div>
+
+                  {/* Body Content */}
+                  {rec.active ? (
+                    <div className="mt-3">
+                      {/* Arrival / Departure fields designed beautifully with big tactile inputs */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="flex flex-col bg-slate-50 hover:bg-slate-100/30 border border-slate-100 rounded-xl p-2.5 transition">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Příchod</span>
+                          <input
+                            type="time"
+                            value={rec.arrival || ""}
+                            onChange={(e) => updateDayField(dateStr, 'arrival', e.target.value)}
+                            className="w-full bg-transparent font-mono text-base font-extrabold text-slate-900 outline-none mt-1 h-8 cursor-pointer"
+                          />
+                        </div>
+                        <div className="flex flex-col bg-slate-50 hover:bg-slate-100/30 border border-slate-100 rounded-xl p-2.5 transition">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Odchod</span>
+                          <input
+                            type="time"
+                            value={rec.departure || ""}
+                            onChange={(e) => updateDayField(dateStr, 'departure', e.target.value)}
+                            className="w-full bg-transparent font-mono text-base font-extrabold text-slate-900 outline-none mt-1 h-8 cursor-pointer"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Overtime warning & time math overview */}
+                      {rec.arrival && rec.departure && (
+                        <div className="flex items-center justify-between mt-3 px-2.5 py-2 bg-indigo-50/10 border border-indigo-100/10 rounded-xl text-xs">
+                          <span className="font-semibold text-slate-500">Odpracovaný čas:</span>
+                          <div className="flex items-baseline space-x-1.5">
+                            <span className={`text-base font-black font-mono ${isOvertime9 ? 'text-rose-600' : 'text-indigo-700'}`}>
+                              {roundedHours.toFixed(2).replace('.', ',')} hod
+                            </span>
+                            <span className="text-[10px] text-slate-400">({exactTimeStr})</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {rec.arrival && rec.departure && isOvertime9 && (
+                        <div className="mt-2 flex items-center gap-2 text-[10px] text-rose-800 bg-rose-50 border border-rose-100 rounded-lg p-2.5 font-bold">
+                          <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                          <span>Máte odpracováno přes 9 hodin. Ujistěte se, že je to v souladu se zákoníkem práce!</span>
+                        </div>
+                      )}
+
+                      {/* Expandable options drawer for mobile users to do lunch/note/interruption */}
+                      <div className="mt-3">
+                        <details className="group border border-slate-200/50 rounded-xl bg-slate-50/20 overflow-hidden">
+                          <summary className="list-none flex items-center justify-between px-3 py-2.5 text-xs font-bold text-slate-600 cursor-pointer hover:bg-slate-50 transition">
+                            <span className="flex items-center gap-2">
+                              <Settings className="w-4 h-4 text-indigo-500 shrink-0" />
+                              <span>Více (Oběd, Přerušení, Poznámka)</span>
+                            </span>
+                            <ChevronDown className="w-4 h-4 text-slate-400 transition-transform duration-250 group-open:rotate-180" />
+                          </summary>
+                          <div className="p-3.5 border-t border-slate-100 bg-white space-y-4">
+                            
+                            {/* Lunch taken toggle */}
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex flex-col">
+                                <span className="text-xs font-bold text-slate-700">Odečíst 30m pauzu na oběd?</span>
+                                <span className="text-[10px] text-slate-400">Automatický odpočet z pracovní doby</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => updateDayField(dateStr, 'lunchTaken', !rec.lunchTaken)}
+                                className={`px-3.5 py-2 rounded-lg text-xs font-black tracking-wide border transition touch-manipulation min-h-[40px] shrink-0 ${
+                                  rec.lunchTaken
+                                    ? "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                                    : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200"
+                                }`}
+                              >
+                                {rec.lunchTaken ? "☕ Ano (-30m)" : "❌ Ne"}
+                              </button>
+                            </div>
+
+                            {/* Interruption times */}
+                            <div className="border-t border-slate-100 pt-3.5">
+                              <span className="text-xs font-bold text-slate-700 block mb-1">Nezapočtené přerušení (lékař, nákup atd.):</span>
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-slate-50 rounded-xl p-2 border border-slate-100">
+                                  <span className="text-[9px] text-slate-400 block font-bold font-mono">Od</span>
+                                  <input
+                                    type="time"
+                                    value={rec.interruptionFrom || ""}
+                                    onChange={(e) => updateDayField(dateStr, 'interruptionFrom', e.target.value)}
+                                    className="w-full bg-transparent font-mono text-sm text-slate-800 outline-none mt-0.5 text-center min-h-[24px]"
+                                  />
+                                </div>
+                                <span className="text-slate-400 text-xs mt-3 select-none">-</span>
+                                <div className="flex-1 bg-slate-50 rounded-xl p-2 border border-slate-100">
+                                  <span className="text-[9px] text-slate-400 block font-bold font-mono">Do</span>
+                                  <input
+                                    type="time"
+                                    value={rec.interruptionTo || ""}
+                                    onChange={(e) => updateDayField(dateStr, 'interruptionTo', e.target.value)}
+                                    className="w-full bg-transparent font-mono text-sm text-slate-800 outline-none mt-0.5 text-center min-h-[24px]"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Note */}
+                            <div className="border-t border-slate-100 pt-3.5">
+                              <span className="text-xs font-bold text-slate-700 block mb-1.5">Poznámka k danému dni:</span>
+                              <input
+                                type="text"
+                                value={rec.note || ""}
+                                onChange={(e) => updateDayField(dateStr, 'note', e.target.value)}
+                                placeholder="Přidat poznámku (např. Home office...)"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-hidden focus:border-indigo-400 min-h-[40px]"
+                              />
+                            </div>
+
+                          </div>
+                        </details>
+                      </div>
+
+                      {/* Large Comfortable Touch Action buttons */}
+                      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-100/40">
+                        <button
+                          type="button"
+                          onClick={() => setStandardDayTimes(dateStr)}
+                          className="flex items-center justify-center space-x-1 py-1.5 px-0.5 bg-indigo-50/50 active:bg-indigo-100 text-indigo-700 border border-indigo-100/50 rounded-xl font-bold text-xs transition touch-manipulation min-h-[40px]"
+                        >
+                          <Copy className="w-3.5 h-3.5 shrink-0 text-indigo-400" />
+                          <span>Výchozí</span>
+                        </button>
+
+                        {dayInt > 1 ? (
+                          <button
+                            type="button"
+                            onClick={() => handleCopyPrevDay(dateStr)}
+                            className="flex items-center justify-center space-x-1 py-1.5 px-0.5 bg-indigo-50/50 active:bg-indigo-100 text-indigo-700 border border-indigo-100/50 rounded-xl font-bold text-xs transition touch-manipulation min-h-[40px]"
+                          >
+                            <ChevronDown className="w-3.5 h-3.5 shrink-0 text-indigo-400" />
+                            <span>Kopírovat</span>
+                          </button>
+                        ) : (
+                          <div className="min-h-[40px]" />
+                        )}
+
+                        {(rec.arrival || rec.departure || rec.note) ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateDayField(dateStr, 'arrival', "");
+                              updateDayField(dateStr, 'departure', "");
+                              updateDayField(dateStr, 'interruptionFrom', "");
+                              updateDayField(dateStr, 'interruptionTo', "");
+                              updateDayField(dateStr, 'note', "");
+                            }}
+                            className="flex items-center justify-center space-x-1 py-1.5 px-0.5 bg-rose-50 active:bg-rose-100 text-rose-700 border border-rose-100/50 rounded-xl font-bold text-xs transition touch-manipulation min-h-[40px]"
+                          >
+                            <X className="w-3.5 h-3.5 shrink-0 text-rose-400" />
+                            <span>Smazat</span>
+                          </button>
+                        ) : (
+                          <div className="min-h-[40px]" />
+                        )}
+
+                      </div>
+
+                    </div>
+                  ) : (
+                    <div className="mt-2.5 px-1 py-1 text-center text-xs text-slate-400 italic">
+                      Záznam vypnut — aktivujte přepínačem vpravo nahoře
+                    </div>
+                  )}
+
+                </div>
+              );
+            })}
           </div>
 
           {/* Table print-only signature section footer */}
