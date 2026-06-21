@@ -45,6 +45,99 @@ const DEFAULT_SETTINGS: AppSettings = {
   employeeName: "",
 };
 
+function TimeSelect({
+  value,
+  onChange,
+  disabled,
+  className = "",
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  disabled?: boolean;
+  className?: string;
+}) {
+  const hour = value ? value.split(":")[0] : "";
+  const minute = value ? value.split(":")[1] : "";
+
+  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+  const minutes = ["00", "15", "30", "45"];
+
+  const handleHourChange = (newHour: string) => {
+    if (!newHour) {
+      onChange("");
+      return;
+    }
+    const currentMin = minutes.includes(minute) ? minute : "00";
+    onChange(`${newHour}:${currentMin}`);
+  };
+
+  const handleMinChange = (newMin: string) => {
+    if (!newMin) {
+      if (hour) {
+        onChange(`${hour}:00`);
+      } else {
+        onChange("");
+      }
+      return;
+    }
+    const currentHour = hour || "08"; // sensible default hour
+    onChange(`${currentHour}:${newMin}`);
+  };
+
+  // Keep existing non-slotted minutes visible
+  const activeMinutes = [...minutes];
+  if (minute && !minutes.includes(minute)) {
+    activeMinutes.push(minute);
+    activeMinutes.sort();
+  }
+
+  return (
+    <div className={`inline-flex items-center space-x-1 ${className}`}>
+      <select
+        value={hour}
+        disabled={disabled}
+        onChange={(e) => handleHourChange(e.target.value)}
+        className={`bg-white border text-sm font-mono rounded-md px-1 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 cursor-pointer ${
+          disabled
+            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+            : hour
+            ? "border-indigo-350 bg-indigo-50/15 text-slate-900 font-bold"
+            : "border-slate-200 text-slate-500"
+        }`}
+        style={{ minWidth: "54px", height: "32px" }}
+      >
+        <option value="">--</option>
+        {hours.map((h) => (
+          <option key={h} value={h}>
+            {h}
+          </option>
+        ))}
+      </select>
+      <span className={disabled ? "text-slate-300" : "text-slate-400 font-bold"}>:</span>
+      <select
+        value={minute}
+        disabled={disabled}
+        onChange={(e) => handleMinChange(e.target.value)}
+        className={`bg-white border text-sm font-mono rounded-md px-1 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 cursor-pointer ${
+          disabled
+            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+            : minute
+            ? "border-indigo-350 bg-indigo-50/15 text-slate-900 font-bold"
+            : "border-slate-200 text-slate-500"
+        }`}
+        style={{ minWidth: "54px", height: "32px" }}
+      >
+        {(!hour || !minute) && <option value="">--</option>}
+        {activeMinutes.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export default function App() {
   // Current active date view (defaults to now)
   const [currentYear, setCurrentYear] = useState<number>(() => {
@@ -716,23 +809,21 @@ export default function App() {
               </span>
               
               <div className="flex items-center gap-2 flex-wrap text-sm">
-                <div>
-                  <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase">Příchod</label>
-                  <input
-                    type="time"
-                    value={templateArrival}
-                    onChange={(e) => setTemplateArrival(e.target.value)}
-                    className="bg-white border border-slate-200 rounded-md px-1.5 py-0.5 font-mono text-xs text-slate-900"
-                  />
-                </div>
-                <div>
-                  <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase">Odchod</label>
-                  <input
-                    type="time"
-                    value={templateDeparture}
-                    onChange={(e) => setTemplateDeparture(e.target.value)}
-                    className="bg-white border border-slate-200 rounded-md px-1.5 py-0.5 font-mono text-xs text-slate-900"
-                  />
+                <div className="flex items-center space-x-2">
+                  <div>
+                    <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase">Příchod</label>
+                    <TimeSelect
+                      value={templateArrival}
+                      onChange={(val) => setTemplateArrival(val)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase">Odchod</label>
+                    <TimeSelect
+                      value={templateDeparture}
+                      onChange={(val) => setTemplateDeparture(val)}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase">Oběd pauza</label>
@@ -978,43 +1069,35 @@ export default function App() {
                       </td>
 
                       {/* Arrival Input */}
-                      <td className="px-2 py-2 min-w-[76px]">
+                      <td className="px-2 py-2 min-w-[130px]">
                         <span className="hidden print:inline font-mono text-sm">
                           {rec.active ? (rec.arrival || "-") : ""}
                         </span>
-                        <input
-                          type="time"
-                          value={rec.arrival}
-                          onChange={(e) => updateDayField(dateStr, 'arrival', e.target.value)}
-                          disabled={!rec.active}
-                          className={`w-full px-2 py-1 text-sm font-mono text-slate-800 border rounded-md focus:outline-hidden focus:ring-2 focus:ring-indigo-500/50 print:hidden ${
-                            rec.active 
-                              ? rec.arrival ? 'border-indigo-200 bg-indigo-50/5' : 'border-slate-200 bg-white' 
-                              : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-                          }`}
-                        />
+                        <div className="print:hidden">
+                          <TimeSelect
+                            value={rec.arrival}
+                            onChange={(val) => updateDayField(dateStr, 'arrival', val)}
+                            disabled={!rec.active}
+                          />
+                        </div>
                       </td>
 
                       {/* Departure Input */}
-                      <td className="px-2 py-2 min-w-[76px]">
+                      <td className="px-2 py-2 min-w-[130px]">
                         <span className="hidden print:inline font-mono text-sm">
                           {rec.active ? (rec.departure || "-") : ""}
                         </span>
-                        <input
-                          type="time"
-                          value={rec.departure}
-                          onChange={(e) => updateDayField(dateStr, 'departure', e.target.value)}
-                          disabled={!rec.active}
-                          className={`w-full px-2 py-1 text-sm font-mono text-slate-800 border rounded-md focus:outline-hidden focus:ring-2 focus:ring-indigo-500/50 print:hidden ${
-                            rec.active 
-                              ? rec.departure ? 'border-indigo-200 bg-indigo-50/5' : 'border-slate-200 bg-white' 
-                              : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-                          }`}
-                        />
+                        <div className="print:hidden">
+                          <TimeSelect
+                            value={rec.departure}
+                            onChange={(val) => updateDayField(dateStr, 'departure', val)}
+                            disabled={!rec.active}
+                          />
+                        </div>
                       </td>
 
                       {/* Interruption From - To */}
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-2 min-w-[270px]">
                         <span className="hidden print:inline font-mono text-xs">
                           {rec.active && rec.interruptionFrom && rec.interruptionTo 
                             ? `${rec.interruptionFrom} - ${rec.interruptionTo}` 
@@ -1023,31 +1106,17 @@ export default function App() {
                             : ""
                           }
                         </span>
-                        <div className="flex items-center space-x-1 font-mono text-xs print:hidden">
-                          <input
-                            type="time"
+                        <div className="flex items-center space-x-1.5 print:hidden">
+                          <TimeSelect
                             value={rec.interruptionFrom}
-                            onChange={(e) => updateDayField(dateStr, 'interruptionFrom', e.target.value)}
+                            onChange={(val) => updateDayField(dateStr, 'interruptionFrom', val)}
                             disabled={!rec.active}
-                            className={`w-20 px-1.5 py-1 text-center border rounded-md focus:outline-hidden ${
-                              rec.active 
-                                ? rec.interruptionFrom ? 'border-amber-200 bg-amber-50/10' : 'border-slate-200 bg-white' 
-                                : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-                            }`}
-                            placeholder="Od"
                           />
-                          <span className="text-slate-400">-</span>
-                          <input
-                            type="time"
+                          <span className="text-slate-400 font-bold">-</span>
+                          <TimeSelect
                             value={rec.interruptionTo}
-                            onChange={(e) => updateDayField(dateStr, 'interruptionTo', e.target.value)}
+                            onChange={(val) => updateDayField(dateStr, 'interruptionTo', val)}
                             disabled={!rec.active}
-                            className={`w-20 px-1.5 py-1 text-center border rounded-md focus:outline-hidden ${
-                              rec.active 
-                                ? rec.interruptionTo ? 'border-amber-200 bg-amber-50/10' : 'border-slate-200 bg-white' 
-                                : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-                            }`}
-                            placeholder="Do"
                           />
                         </div>
                       </td>
@@ -1241,7 +1310,7 @@ export default function App() {
                           </span>
                         ) : (
                           <span className="text-xs text-slate-500 font-medium">
-                            {rec.isWeekend ? "Volný den" : `Fund ${settings.dailyWorkFund} h`}
+                            {rec.isWeekend ? "Volný den" : `Fond ${settings.dailyWorkFund} h`}
                           </span>
                         )}
                       </div>
@@ -1273,22 +1342,18 @@ export default function App() {
                     <div className="mt-3">
                       {/* Arrival / Departure fields designed beautifully with big tactile inputs */}
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="flex flex-col bg-slate-50 hover:bg-slate-100/30 border border-slate-100 rounded-xl p-2.5 transition">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Příchod</span>
-                          <input
-                            type="time"
+                        <div className="flex flex-col bg-slate-50 hover:bg-slate-100/30 border border-slate-100 rounded-xl p-2 border-b-2 transition">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Příchod</span>
+                          <TimeSelect
                             value={rec.arrival || ""}
-                            onChange={(e) => updateDayField(dateStr, 'arrival', e.target.value)}
-                            className="w-full bg-transparent font-mono text-base font-extrabold text-slate-900 outline-none mt-1 h-8 cursor-pointer"
+                            onChange={(val) => updateDayField(dateStr, 'arrival', val)}
                           />
                         </div>
-                        <div className="flex flex-col bg-slate-50 hover:bg-slate-100/30 border border-slate-100 rounded-xl p-2.5 transition">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Odchod</span>
-                          <input
-                            type="time"
+                        <div className="flex flex-col bg-slate-50 hover:bg-slate-100/30 border border-slate-100 rounded-xl p-2 border-b-2 transition">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Odchod</span>
+                          <TimeSelect
                             value={rec.departure || ""}
-                            onChange={(e) => updateDayField(dateStr, 'departure', e.target.value)}
-                            className="w-full bg-transparent font-mono text-base font-extrabold text-slate-900 outline-none mt-1 h-8 cursor-pointer"
+                            onChange={(val) => updateDayField(dateStr, 'departure', val)}
                           />
                         </div>
                       </div>
@@ -1348,23 +1413,19 @@ export default function App() {
                             <div className="border-t border-slate-100 pt-3.5">
                               <span className="text-xs font-bold text-slate-700 block mb-1">Nezapočtené přerušení (lékař, nákup atd.):</span>
                               <div className="flex items-center gap-2">
-                                <div className="flex-1 bg-slate-50 rounded-xl p-2 border border-slate-100">
-                                  <span className="text-[9px] text-slate-400 block font-bold font-mono">Od</span>
-                                  <input
-                                    type="time"
+                                <div className="flex-1 bg-slate-50 rounded-xl p-2 border border-slate-100 flex flex-col items-center">
+                                  <span className="text-[9px] text-slate-400 block font-bold font-mono mb-1">Od</span>
+                                  <TimeSelect
                                     value={rec.interruptionFrom || ""}
-                                    onChange={(e) => updateDayField(dateStr, 'interruptionFrom', e.target.value)}
-                                    className="w-full bg-transparent font-mono text-sm text-slate-800 outline-none mt-0.5 text-center min-h-[24px]"
+                                    onChange={(val) => updateDayField(dateStr, 'interruptionFrom', val)}
                                   />
                                 </div>
-                                <span className="text-slate-400 text-xs mt-3 select-none">-</span>
-                                <div className="flex-1 bg-slate-50 rounded-xl p-2 border border-slate-100">
-                                  <span className="text-[9px] text-slate-400 block font-bold font-mono">Do</span>
-                                  <input
-                                    type="time"
+                                <span className="text-slate-400 text-xs select-none font-bold">-</span>
+                                <div className="flex-1 bg-slate-50 rounded-xl p-2 border border-slate-100 flex flex-col items-center">
+                                  <span className="text-[9px] text-slate-400 block font-bold font-mono mb-1">Do</span>
+                                  <TimeSelect
                                     value={rec.interruptionTo || ""}
-                                    onChange={(e) => updateDayField(dateStr, 'interruptionTo', e.target.value)}
-                                    className="w-full bg-transparent font-mono text-sm text-slate-800 outline-none mt-0.5 text-center min-h-[24px]"
+                                    onChange={(val) => updateDayField(dateStr, 'interruptionTo', val)}
                                   />
                                 </div>
                               </div>
@@ -1527,12 +1588,13 @@ export default function App() {
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                       Výchozí příchod
                     </label>
-                    <input
-                      type="time"
-                      value={settings.defaultArrival}
-                      onChange={(e) => saveSettings({ ...settings, defaultArrival: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-hidden focus:ring-2 focus:ring-indigo-500/50"
-                    />
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 flex items-center justify-between">
+                      <span className="text-xs text-slate-500 font-medium">Zvolte čas:</span>
+                      <TimeSelect
+                        value={settings.defaultArrival}
+                        onChange={(val) => saveSettings({ ...settings, defaultArrival: val })}
+                      />
+                    </div>
                     <p className="text-3xs text-slate-400 mt-1">
                       Tato pracovní doba bude předvyplněná pro nové pracovní dny.
                     </p>
@@ -1543,12 +1605,13 @@ export default function App() {
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                       Výchozí odchod
                     </label>
-                    <input
-                      type="time"
-                      value={settings.defaultDeparture}
-                      onChange={(e) => saveSettings({ ...settings, defaultDeparture: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-hidden focus:ring-2 focus:ring-indigo-500/50"
-                    />
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 flex items-center justify-between">
+                      <span className="text-xs text-slate-500 font-medium">Zvolte čas:</span>
+                      <TimeSelect
+                        value={settings.defaultDeparture}
+                        onChange={(val) => saveSettings({ ...settings, defaultDeparture: val })}
+                      />
+                    </div>
                   </div>
 
                   {/* Daily Work Fund standard */}
