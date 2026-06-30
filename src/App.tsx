@@ -995,7 +995,7 @@ export default function App() {
               <tbody className="divide-y divide-slate-100 text-sm">
                 {Object.keys(records).sort().map(dateStr => {
                   const rec = records[dateStr];
-                  const { exactTimeStr, roundedHours } = calculateDailyHours(
+                  const { exactTimeStr, roundedHours, hasSecondBreakEligibility } = calculateDailyHours(
                     rec.arrival,
                     rec.departure,
                     rec.interruptionFrom,
@@ -1004,17 +1004,6 @@ export default function App() {
                     30,
                     rec.secondBreakNotTaken
                   );
-
-                  const { roundedHours: baseHours } = calculateDailyHours(
-                    rec.arrival,
-                    rec.departure,
-                    rec.interruptionFrom,
-                    rec.interruptionTo,
-                    rec.lunchTaken,
-                    30,
-                    false
-                  );
-                  const hasSecondBreakEligibility = rec.arrival && rec.departure && baseHours > 9;
 
                   // Extract date parts
                   const dayObj = new Date(dateStr);
@@ -1150,7 +1139,7 @@ export default function App() {
                               <span>Oběd: {rec.lunchTaken ? "Ano" : "Ne"}</span>
                               {hasSecondBreakEligibility && (
                                 <span className="text-[10px]">
-                                  9h+ p.: {rec.secondBreakNotTaken ? "Nevyč." : "Vyč."}
+                                  9,5h+ p.: {rec.secondBreakNotTaken ? "Nevyč." : "Vyč."}
                                 </span>
                               )}
                             </span>
@@ -1315,7 +1304,7 @@ export default function App() {
           <div className="block md:hidden bg-slate-50 p-2 sm:p-3 space-y-3 print:hidden">
             {Object.keys(records).sort().map(dateStr => {
               const rec = records[dateStr];
-              const { exactTimeStr, roundedHours } = calculateDailyHours(
+              const { exactTimeStr, roundedHours, hasSecondBreakEligibility } = calculateDailyHours(
                 rec.arrival,
                 rec.departure,
                 rec.interruptionFrom,
@@ -1324,17 +1313,6 @@ export default function App() {
                 30,
                 rec.secondBreakNotTaken
               );
-
-              const { roundedHours: baseHours } = calculateDailyHours(
-                rec.arrival,
-                rec.departure,
-                rec.interruptionFrom,
-                rec.interruptionTo,
-                rec.lunchTaken,
-                30,
-                false
-              );
-              const hasSecondBreakEligibility = rec.arrival && rec.departure && baseHours > 9;
 
               // Extract date parts
               const dayObj = new Date(dateStr);
@@ -1544,7 +1522,7 @@ export default function App() {
                             {hasSecondBreakEligibility && (
                               <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3.5">
                                 <div className="flex flex-col">
-                                  <span className="text-xs font-bold text-slate-700">Druhá přestávka 15m (nad 9h)?</span>
+                                  <span className="text-xs font-bold text-slate-700">Druhá přestávka 15m (nad 9,5h)?</span>
                                   <span className="text-[10px] text-slate-400">Nevyčerpáno = přičíst 15m k přesčasům (nelze přerušit službu)</span>
                                 </div>
                                 <button
@@ -1950,7 +1928,7 @@ export default function App() {
                   dayLabelStyle = "text-amber-700 font-semibold";
                 }
 
-                const { roundedHours } = calculateDailyHours(
+                const { roundedHours, hasSecondBreakEligibility } = calculateDailyHours(
                   rec.arrival,
                   rec.departure,
                   rec.interruptionFrom,
@@ -1959,17 +1937,6 @@ export default function App() {
                   30,
                   rec.secondBreakNotTaken
                 );
-
-                const { roundedHours: baseHours } = calculateDailyHours(
-                  rec.arrival,
-                  rec.departure,
-                  rec.interruptionFrom,
-                  rec.interruptionTo,
-                  rec.lunchTaken,
-                  30,
-                  false
-                );
-                const hasSecondBreakEligibility = rec.arrival && rec.departure && baseHours > 9;
 
                 const isOvertime9 = roundedHours > 9;
                 if (rec.arrival && rec.departure && isOvertime9) {
@@ -2010,7 +1977,7 @@ export default function App() {
                           <span>{rec.lunchTaken ? "Oběd: Ano" : "Oběd: Ne"}</span>
                           {hasSecondBreakEligibility && (
                             <span className="text-[9px] font-semibold text-slate-600 mt-0.5">
-                              {rec.secondBreakNotTaken ? "9h+ p.: Nevyč." : "9h+ p.: Vyč."}
+                              {rec.secondBreakNotTaken ? "9,5h+ p.: Nevyč." : "9,5h+ p.: Vyč."}
                             </span>
                           )}
                         </div>

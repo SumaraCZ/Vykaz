@@ -104,16 +104,16 @@ export function calculateDailyHours(
   lunchTaken: boolean,
   lunchDurationMins: number = 30,
   secondBreakNotTaken: boolean = true
-): { exactMinutes: number; roundedHours: number; exactTimeStr: string } {
+): { exactMinutes: number; roundedHours: number; exactTimeStr: string; hasSecondBreakEligibility: boolean } {
   if (!arrival || !departure) {
-    return { exactMinutes: 0, roundedHours: 0, exactTimeStr: "0:00" };
+    return { exactMinutes: 0, roundedHours: 0, exactTimeStr: "0:00", hasSecondBreakEligibility: false };
   }
 
   const arr = parseTimeToMinutes(arrival);
   const dep = parseTimeToMinutes(departure);
   
   if (dep <= arr) {
-    return { exactMinutes: 0, roundedHours: 0, exactTimeStr: "0:00" };
+    return { exactMinutes: 0, roundedHours: 0, exactTimeStr: "0:00", hasSecondBreakEligibility: false };
   }
 
   const grossMins = dep - arr;
@@ -138,10 +138,10 @@ export function calculateDailyHours(
 
   let netMins = baseNetMins;
 
-  // Second break rule: if net work time exceeds 9 hours (540 minutes), they are entitled to another 15m break.
+  // Second break rule: if net work time is 9.5 hours (570 minutes) or more, they are entitled to another 15m break.
   // If they didn't take it due to continuous service, those 15m are added to worked hours.
-  // If they did take it, it is deducted by law.
-  if (baseNetMins > 540) {
+  // If they did take it, it is deducted as an unpaid break.
+  if (baseNetMins >= 570) {
     if (secondBreakNotTaken) {
       netMins = baseNetMins + 15;
     } else {
@@ -172,6 +172,7 @@ export function calculateDailyHours(
   return {
     exactMinutes: netMins,
     roundedHours: Number(roundedHours.toFixed(2)),
-    exactTimeStr: minutesToTimeStr(netMins)
+    exactTimeStr: minutesToTimeStr(netMins),
+    hasSecondBreakEligibility: baseNetMins >= 570
   };
 }
