@@ -1168,8 +1168,8 @@ export default function App() {
 
                           {/* Second break (only if >9h worked) */}
                           {hasSecondBreakEligibility && (
-                            <div className="flex flex-col items-center border-t border-slate-150 pt-1.5 w-full justify-center" title="Druhá zákonná přestávka 15m (při službě nad 9 hodin)">
-                              <span className="text-[9px] text-slate-400 font-bold mb-0.5">Pauza 9h+</span>
+                            <div className="flex flex-col items-center border-t border-slate-150 pt-1.5 w-full justify-center" title="Druhá zákonná přestávka 15m (při službě nad 9,5 hodin)">
+                              <span className="text-[9px] text-slate-400 font-bold mb-0.5">Pauza 9,5h+</span>
                               <button
                                 type="button"
                                 disabled={!rec.active}
@@ -1179,7 +1179,7 @@ export default function App() {
                                     ? "bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-200"
                                     : "bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200"
                                 }`}
-                                title={rec.secondBreakNotTaken ? "Nevyčerpaná: +15 minut k přesčasům (nelze přerušit službu)" : "Vyčerpaná: -15 minut z odpracovaných hodin"}
+                                title={rec.secondBreakNotTaken ? "Nevyčerpaná: Neodečítá se z odpracované doby" : "Vyčerpaná: Odečte se 15 minut z odpracované doby"}
                               >
                                 {rec.secondBreakNotTaken ? "Nevyčerpaná" : "Vyčerpaná"}
                               </button>
@@ -1518,12 +1518,12 @@ export default function App() {
                               </button>
                             </div>
 
-                            {/* Second break toggle (only if >9h worked) */}
+                            {/* Second break toggle (only if >=9.5h worked) */}
                             {hasSecondBreakEligibility && (
                               <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3.5">
                                 <div className="flex flex-col">
                                   <span className="text-xs font-bold text-slate-700">Druhá přestávka 15m (nad 9,5h)?</span>
-                                  <span className="text-[10px] text-slate-400">Nevyčerpáno = přičíst 15m k přesčasům (nelze přerušit službu)</span>
+                                  <span className="text-[10px] text-slate-400">Nevyčerpáno = neodečítá se z odpracované doby</span>
                                 </div>
                                 <button
                                   type="button"
@@ -1534,7 +1534,7 @@ export default function App() {
                                       : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
                                   }`}
                                 >
-                                  {rec.secondBreakNotTaken ? "⚠ Nevyčerpaná (+15m)" : "☕ Vyčerpaná (-15m)"}
+                                  {rec.secondBreakNotTaken ? "⚠ Nevyčerpaná (plný čas)" : "☕ Vyčerpaná (-15m)"}
                                 </button>
                               </div>
                             )}
@@ -1787,7 +1787,7 @@ export default function App() {
                     <div className="flex items-center justify-between">
                       <div>
                         <label className="font-semibold text-slate-800 text-sm block">Automatická druhá přestávka</label>
-                        <span className="text-3xs text-slate-400">Při odpracování nad 9h automaticky odečíst 15min druhou přestávku</span>
+                        <span className="text-3xs text-slate-400">Při odpracování nad 9,5h automaticky odečíst 15min druhou přestávku</span>
                       </div>
                       <button
                         type="button"
