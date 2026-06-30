@@ -139,11 +139,11 @@ export function calculateDailyHours(
   let netMins = baseNetMins;
 
   // Second break rule: if net work time exceeds 9 hours (540 minutes), they are entitled to another 15m break.
-  // If they didn't take it due to continuous service, those 15m are added back.
+  // If they didn't take it due to continuous service, those 15m are added to worked hours.
   // If they did take it, it is deducted by law.
   if (baseNetMins > 540) {
     if (secondBreakNotTaken) {
-      netMins = baseNetMins;
+      netMins = baseNetMins + 15;
     } else {
       netMins = baseNetMins - 15;
     }
