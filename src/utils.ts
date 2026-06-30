@@ -103,7 +103,7 @@ export function calculateDailyHours(
   interruptionTo: string,
   lunchTaken: boolean,
   lunchDurationMins: number = 30,
-  secondBreakNotTaken: boolean = false
+  secondBreakNotTaken: boolean = true
 ): { exactMinutes: number; roundedHours: number; exactTimeStr: string } {
   if (!arrival || !departure) {
     return { exactMinutes: 0, roundedHours: 0, exactTimeStr: "0:00" };

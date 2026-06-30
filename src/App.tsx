@@ -41,6 +41,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultArrival: "08:00",
   defaultDeparture: "16:00",
   defaultLunchTaken: true,
+  defaultSecondBreakNotTaken: true,
   dailyWorkFund: 7.5,
   employeeName: "",
 };
@@ -97,14 +98,13 @@ function TimeSelect({
         value={hour}
         disabled={disabled}
         onChange={(e) => handleHourChange(e.target.value)}
-        className={`bg-white border text-sm font-mono rounded-md px-1 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 cursor-pointer ${
+        className={`bg-white border text-sm font-mono rounded-md px-2 py-1 h-10 sm:h-8 min-w-[58px] focus:outline-none focus:ring-1 focus:ring-indigo-500/50 cursor-pointer transition-colors ${
           disabled
             ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
             : hour
             ? "border-indigo-350 bg-indigo-50/15 text-slate-900 font-bold"
             : "border-slate-200 text-slate-500"
         }`}
-        style={{ minWidth: "54px", height: "32px" }}
       >
         <option value="">--</option>
         {hours.map((h) => (
@@ -118,14 +118,13 @@ function TimeSelect({
         value={minute}
         disabled={disabled}
         onChange={(e) => handleMinChange(e.target.value)}
-        className={`bg-white border text-sm font-mono rounded-md px-1 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 cursor-pointer ${
+        className={`bg-white border text-sm font-mono rounded-md px-2 py-1 h-10 sm:h-8 min-w-[58px] focus:outline-none focus:ring-1 focus:ring-indigo-500/50 cursor-pointer transition-colors ${
           disabled
             ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
             : minute
             ? "border-indigo-350 bg-indigo-50/15 text-slate-900 font-bold"
             : "border-slate-200 text-slate-500"
         }`}
-        style={{ minWidth: "54px", height: "32px" }}
       >
         {(!hour || !minute) && <option value="">--</option>}
         {activeMinutes.map((m) => (
@@ -252,6 +251,7 @@ export default function App() {
           interruptionFrom: "",
           interruptionTo: "",
           lunchTaken: settings.defaultLunchTaken,
+          secondBreakNotTaken: settings.defaultSecondBreakNotTaken ?? true,
           note: ""
         };
       }
@@ -391,6 +391,7 @@ export default function App() {
         interruptionFrom: "",
         interruptionTo: "",
         lunchTaken: settings.defaultLunchTaken,
+        secondBreakNotTaken: settings.defaultSecondBreakNotTaken ?? true,
         note: "",
         active: !rec.isWeekend && !rec.isHoliday,
       };
@@ -461,6 +462,7 @@ export default function App() {
         arrival: isCurrentlyEmpty ? settings.defaultArrival : "",
         departure: isCurrentlyEmpty ? settings.defaultDeparture : "",
         lunchTaken: settings.defaultLunchTaken,
+        secondBreakNotTaken: settings.defaultSecondBreakNotTaken ?? true,
         interruptionFrom: "",
         interruptionTo: "",
       }
@@ -635,6 +637,7 @@ export default function App() {
         arrival: settings.defaultArrival,
         departure: settings.defaultDeparture,
         lunchTaken: settings.defaultLunchTaken,
+        secondBreakNotTaken: settings.defaultSecondBreakNotTaken ?? true,
         interruptionFrom: "",
         interruptionTo: "",
       }
@@ -806,35 +809,36 @@ export default function App() {
             </div>
 
             {/* Quick Fill Actions (Desktop inline style) */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-older flex items-center gap-1.5">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col lg:flex-row lg:items-center gap-3.5 w-full md:w-auto">
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
                 Hromadný import:
               </span>
               
-              <div className="flex items-center gap-2 flex-wrap text-sm">
+              <div className="flex flex-wrap items-end gap-3 text-sm w-full lg:w-auto">
                 <div className="flex items-center space-x-2">
                   <div>
-                    <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase">Příchod</label>
+                    <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase mb-0.5">Příchod</label>
                     <TimeSelect
                       value={templateArrival}
                       onChange={(val) => setTemplateArrival(val)}
                     />
                   </div>
                   <div>
-                    <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase">Odchod</label>
+                    <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase mb-0.5">Odchod</label>
                     <TimeSelect
                       value={templateDeparture}
                       onChange={(val) => setTemplateDeparture(val)}
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase">Oběd pauza</label>
+                
+                <div className="flex-1 min-w-[110px] md:flex-none">
+                  <label className="text-3xs text-slate-400 block -mt-1 font-mono uppercase mb-0.5">Oběd pauza</label>
                   <select
                     value={templateLunchTaken ? "ano" : "ne"}
                     onChange={(e) => setTemplateLunchTaken(e.target.value === "ano")}
-                    className="bg-white border border-slate-200 rounded-md px-1.5 py-0.5 text-xs text-slate-900 focus:outline-none"
+                    className="bg-white border border-slate-200 rounded-lg px-2 text-xs text-slate-900 focus:outline-none h-10 sm:h-8 w-full cursor-pointer"
                   >
                     <option value="ano">Ano (-30m)</option>
                     <option value="ne">Ne (přičíst k v.h.)</option>
@@ -843,7 +847,7 @@ export default function App() {
                 
                 <button
                   onClick={handleAutoFill}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-3.5 py-1.5 rounded-lg transition shadow-xs cursor-pointer inline-flex items-center space-x-1"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 h-10 sm:h-8 rounded-lg transition shadow-xs cursor-pointer inline-flex items-center justify-center space-x-1 shrink-0"
                 >
                   <span>Vyplnit pracovní dny</span>
                 </button>
@@ -1451,14 +1455,50 @@ export default function App() {
 
                       {/* Overtime warning & time math overview */}
                       {rec.arrival && rec.departure && (
-                        <div className="flex items-center justify-between mt-3 px-2.5 py-2 bg-indigo-50/10 border border-indigo-100/10 rounded-xl text-xs">
-                          <span className="font-semibold text-slate-500">Odpracovaný čas:</span>
-                          <div className="flex items-baseline space-x-1.5">
-                            <span className={`text-base font-black font-mono ${isOvertime9 ? 'text-rose-600' : 'text-indigo-700'}`}>
-                              {roundedHours.toFixed(2).replace('.', ',')} hod
-                            </span>
-                            <span className="text-[10px] text-slate-400">({exactTimeStr})</span>
+                        <div className="mt-3 bg-slate-50/50 border border-slate-200/60 rounded-xl p-3 space-y-2.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-semibold text-slate-500">Odpracovaný čas:</span>
+                            <div className="flex items-baseline space-x-1.5">
+                              <span className={`text-base font-black font-mono ${isOvertime9 ? 'text-rose-600' : 'text-indigo-700'}`}>
+                                {roundedHours.toFixed(2).replace('.', ',')} hod
+                              </span>
+                              <span className="text-[10px] text-slate-400">({exactTimeStr})</span>
+                            </div>
                           </div>
+
+                          {/* Daily balance detail */}
+                          {(() => {
+                            const dailyFund = (rec.isWeekend || rec.isHoliday) ? 0 : settings.dailyWorkFund;
+                            const diff = roundedHours - dailyFund;
+                            if (diff > 0) {
+                              return (
+                                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                                  <span className="text-slate-500 font-semibold">Bilance dne:</span>
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 font-mono">
+                                    +{diff.toFixed(2).replace('.', ',')} hod (přesčas)
+                                  </span>
+                                </div>
+                              );
+                            } else if (diff < 0) {
+                              return (
+                                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                                  <span className="text-slate-500 font-semibold">Bilance dne:</span>
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-100 font-mono">
+                                    {diff.toFixed(2).replace('.', ',')} hod (chybí)
+                                  </span>
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                                  <span className="text-slate-500 font-semibold">Bilance dne:</span>
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-black bg-slate-150 text-slate-650 border border-slate-200 font-mono">
+                                    splněno (±0)
+                                  </span>
+                                </div>
+                              );
+                            }
+                          })()}
                         </div>
                       )}
 
@@ -1657,7 +1697,7 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative z-10 border border-slate-100"
+              className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto relative z-10 border border-slate-100"
             >
               <div className="p-6">
                 
@@ -1757,6 +1797,25 @@ export default function App() {
                         onClick={() => saveSettings({ ...settings, defaultLunchTaken: !settings.defaultLunchTaken })}
                         className={`w-11 h-6 rounded-full transition-colors flex items-center p-1 cursor-pointer ${
                           settings.defaultLunchTaken ? "bg-indigo-600 justify-end" : "bg-slate-300 justify-start"
+                        }`}
+                      >
+                        <span className="bg-white w-4 h-4 rounded-full shadow-sm" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Second break behavior defaults */}
+                  <div className="pt-2 border-t border-slate-100 mt-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="font-semibold text-slate-800 text-sm block">Automatická druhá přestávka</label>
+                        <span className="text-3xs text-slate-400">Při odpracování nad 9h automaticky odečíst 15min druhou přestávku</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => saveSettings({ ...settings, defaultSecondBreakNotTaken: !settings.defaultSecondBreakNotTaken })}
+                        className={`w-11 h-6 rounded-full transition-colors flex items-center p-1 cursor-pointer ${
+                          !settings.defaultSecondBreakNotTaken ? "bg-indigo-600 justify-end" : "bg-slate-300 justify-start"
                         }`}
                       >
                         <span className="bg-white w-4 h-4 rounded-full shadow-sm" />
