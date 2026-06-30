@@ -102,7 +102,8 @@ export function calculateDailyHours(
   interruptionFrom: string,
   interruptionTo: string,
   lunchTaken: boolean,
-  lunchDurationMins: number = 30
+  lunchDurationMins: number = 30,
+  secondBreakNotTaken: boolean = false
 ): { exactMinutes: number; roundedHours: number; exactTimeStr: string } {
   if (!arrival || !departure) {
     return { exactMinutes: 0, roundedHours: 0, exactTimeStr: "0:00" };
@@ -132,7 +133,22 @@ export function calculateDailyHours(
   // If lunchTaken === false (ne), we do NOT deduct lunch break (lunch time counts as worked hours).
   const lunchDeduction = lunchTaken ? lunchDurationMins : 0;
 
-  let netMins = grossMins - intMins - lunchDeduction;
+  let baseNetMins = grossMins - intMins - lunchDeduction;
+  if (baseNetMins < 0) baseNetMins = 0;
+
+  let netMins = baseNetMins;
+
+  // Second break rule: if net work time exceeds 9 hours (540 minutes), they are entitled to another 15m break.
+  // If they didn't take it due to continuous service, those 15m are added back.
+  // If they did take it, it is deducted by law.
+  if (baseNetMins > 540) {
+    if (secondBreakNotTaken) {
+      netMins = baseNetMins + 15;
+    } else {
+      netMins = baseNetMins - 15;
+    }
+  }
+
   if (netMins < 0) netMins = 0;
 
   // Rounding: convert remaining minutes to closest 15 min interval

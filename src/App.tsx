@@ -488,7 +488,9 @@ export default function App() {
         rec.departure,
         rec.interruptionFrom,
         rec.interruptionTo,
-        rec.lunchTaken
+        rec.lunchTaken,
+        30,
+        rec.secondBreakNotTaken
       );
       totalWorkedDecimal += roundedHours;
       if (roundedHours > 0) {
@@ -520,7 +522,9 @@ export default function App() {
         rec.departure,
         rec.interruptionFrom,
         rec.interruptionTo,
-        rec.lunchTaken
+        rec.lunchTaken,
+        30,
+        rec.secondBreakNotTaken
       );
 
       const parts = [
@@ -978,7 +982,7 @@ export default function App() {
                   <th className="px-3 py-3 w-28">Příchod</th>
                   <th className="px-3 py-3 w-28">Odchod</th>
                   <th className="px-3 py-3 w-48">Přerušení od-do</th>
-                  <th className="px-3 py-3 w-24 text-center">Oběd</th>
+                  <th className="px-3 py-3 w-32 text-center">Přestávky</th>
                   <th className="px-3 py-3 w-32 text-right">Odpracováno</th>
                   <th className="px-3 py-3 min-w-[150px]">Poznámka</th>
                   <th className="px-2 py-3 w-20 text-center print:hidden">Akce</th>
@@ -992,8 +996,21 @@ export default function App() {
                     rec.departure,
                     rec.interruptionFrom,
                     rec.interruptionTo,
-                    rec.lunchTaken
+                    rec.lunchTaken,
+                    30,
+                    rec.secondBreakNotTaken
                   );
+
+                  const { roundedHours: baseHours } = calculateDailyHours(
+                    rec.arrival,
+                    rec.departure,
+                    rec.interruptionFrom,
+                    rec.interruptionTo,
+                    rec.lunchTaken,
+                    30,
+                    false
+                  );
+                  const hasSecondBreakEligibility = rec.arrival && rec.departure && baseHours > 9;
 
                   // Extract date parts
                   const dayObj = new Date(dateStr);
@@ -1121,26 +1138,61 @@ export default function App() {
                         </div>
                       </td>
 
-                      {/* Lunch taken Selection checkbox/button */}
+                      {/* Lunch and second break Selection checkbox/button */}
                       <td className="px-3 py-2 text-center text-xs">
                         <span className="hidden print:inline font-semibold">
-                          {rec.active ? (rec.lunchTaken ? "Ano" : "Ne") : ""}
+                          {rec.active ? (
+                            <span className="flex flex-col text-center">
+                              <span>Oběd: {rec.lunchTaken ? "Ano" : "Ne"}</span>
+                              {hasSecondBreakEligibility && (
+                                <span className="text-[10px]">
+                                  9h+ p.: {rec.secondBreakNotTaken ? "Nevyč." : "Vyč."}
+                                </span>
+                              )}
+                            </span>
+                          ) : ""}
                         </span>
-                        <button
-                          type="button"
-                          disabled={!rec.active}
-                          onClick={() => updateDayField(dateStr, 'lunchTaken', !rec.lunchTaken)}
-                          className={`px-3 py-1 rounded text-xs font-semibold transition print:hidden ${
-                            !rec.active
-                              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                              : rec.lunchTaken
-                              ? "bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200"
-                              : "bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-200"
-                          }`}
-                          title={rec.lunchTaken ? "Dedeuruje se standardní 30min oběd" : "Čas oběda je započítán do odpracovaných hodin"}
-                        >
-                          {rec.lunchTaken ? "Ano" : "Ne"}
-                        </button>
+                        
+                        <div className="flex flex-col items-center gap-1.5 print:hidden">
+                          {/* Lunch taken button */}
+                          <div className="flex items-center space-x-1" title="Obědová přestávka 30m">
+                            <button
+                              type="button"
+                              disabled={!rec.active}
+                              onClick={() => updateDayField(dateStr, 'lunchTaken', !rec.lunchTaken)}
+                              className={`px-3 py-1 rounded text-xs font-semibold transition ${
+                                !rec.active
+                                  ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                  : rec.lunchTaken
+                                  ? "bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200"
+                                  : "bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-200"
+                              }`}
+                              title={rec.lunchTaken ? "Dedeuruje se standardní 30min oběd" : "Čas oběda je započítán do odpracovaných hodin"}
+                            >
+                              {rec.lunchTaken ? "Oběd" : "Bez oběda"}
+                            </button>
+                          </div>
+
+                          {/* Second break (only if >9h worked) */}
+                          {hasSecondBreakEligibility && (
+                            <div className="flex flex-col items-center border-t border-slate-150 pt-1.5 w-full justify-center" title="Druhá zákonná přestávka 15m (při službě nad 9 hodin)">
+                              <span className="text-[9px] text-slate-400 font-bold mb-0.5">Pauza 9h+</span>
+                              <button
+                                type="button"
+                                disabled={!rec.active}
+                                onClick={() => updateDayField(dateStr, 'secondBreakNotTaken', !rec.secondBreakNotTaken)}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                                  rec.secondBreakNotTaken
+                                    ? "bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-200"
+                                    : "bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200"
+                                }`}
+                                title={rec.secondBreakNotTaken ? "Nevyčerpaná: +15 minut k přesčasům (nelze přerušit službu)" : "Vyčerpaná: -15 minut z odpracovaných hodin"}
+                              >
+                                {rec.secondBreakNotTaken ? "Nevyčerpaná" : "Vyčerpaná"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </td>
 
                       {/* Calculated Hours Column */}
@@ -1238,8 +1290,21 @@ export default function App() {
                 rec.departure,
                 rec.interruptionFrom,
                 rec.interruptionTo,
-                rec.lunchTaken
+                rec.lunchTaken,
+                30,
+                rec.secondBreakNotTaken
               );
+
+              const { roundedHours: baseHours } = calculateDailyHours(
+                rec.arrival,
+                rec.departure,
+                rec.interruptionFrom,
+                rec.interruptionTo,
+                rec.lunchTaken,
+                30,
+                false
+              );
+              const hasSecondBreakEligibility = rec.arrival && rec.departure && baseHours > 9;
 
               // Extract date parts
               const dayObj = new Date(dateStr);
@@ -1408,6 +1473,27 @@ export default function App() {
                                 {rec.lunchTaken ? "☕ Ano (-30m)" : "❌ Ne"}
                               </button>
                             </div>
+
+                            {/* Second break toggle (only if >9h worked) */}
+                            {hasSecondBreakEligibility && (
+                              <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3.5">
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-bold text-slate-700">Druhá přestávka 15m (nad 9h)?</span>
+                                  <span className="text-[10px] text-slate-400">Nevyčerpáno = přičíst 15m k přesčasům (nelze přerušit službu)</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => updateDayField(dateStr, 'secondBreakNotTaken', !rec.secondBreakNotTaken)}
+                                  className={`px-3.5 py-2 rounded-lg text-xs font-black tracking-wide border transition touch-manipulation min-h-[40px] shrink-0 ${
+                                    rec.secondBreakNotTaken
+                                      ? "bg-amber-50 hover:bg-amber-100 text-amber-850 border-amber-200"
+                                      : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                                  }`}
+                                >
+                                  {rec.secondBreakNotTaken ? "⚠ Nevyčerpaná (+15m)" : "☕ Vyčerpaná (-15m)"}
+                                </button>
+                              </div>
+                            )}
 
                             {/* Interruption times */}
                             <div className="border-t border-slate-100 pt-3.5">
@@ -1784,8 +1870,21 @@ export default function App() {
                   rec.departure,
                   rec.interruptionFrom,
                   rec.interruptionTo,
-                  rec.lunchTaken
+                  rec.lunchTaken,
+                  30,
+                  rec.secondBreakNotTaken
                 );
+
+                const { roundedHours: baseHours } = calculateDailyHours(
+                  rec.arrival,
+                  rec.departure,
+                  rec.interruptionFrom,
+                  rec.interruptionTo,
+                  rec.lunchTaken,
+                  30,
+                  false
+                );
+                const hasSecondBreakEligibility = rec.arrival && rec.departure && baseHours > 9;
 
                 const isOvertime9 = roundedHours > 9;
                 if (rec.arrival && rec.departure && isOvertime9) {
@@ -1821,7 +1920,16 @@ export default function App() {
                       }
                     </td>
                     <td className="p-2 border border-slate-200 text-center text-slate-500 font-sans">
-                      {rec.active ? (rec.lunchTaken ? "Ano" : "Ne") : "-"}
+                      {rec.active ? (
+                        <div className="flex flex-col items-center leading-tight">
+                          <span>{rec.lunchTaken ? "Oběd: Ano" : "Oběd: Ne"}</span>
+                          {hasSecondBreakEligibility && (
+                            <span className="text-[9px] font-semibold text-slate-600 mt-0.5">
+                              {rec.secondBreakNotTaken ? "9h+ p.: Nevyč." : "9h+ p.: Vyč."}
+                            </span>
+                          )}
+                        </div>
+                      ) : "-"}
                     </td>
                     <td className="p-2 border border-slate-200 text-right font-mono font-bold text-slate-900">
                       {rec.arrival && rec.departure ? (
@@ -1833,7 +1941,16 @@ export default function App() {
                       )}
                     </td>
                     <td className="p-3 border border-slate-200 text-slate-600 italic font-sans max-w-[170px] truncate">
-                      {rec.active && rec.note ? rec.note : ""}
+                      {rec.active ? (
+                        <div className="flex flex-col text-left leading-tight">
+                          {rec.note && <span className="truncate">{rec.note}</span>}
+                          {hasSecondBreakEligibility && rec.secondBreakNotTaken && (
+                            <span className="text-[9px] text-indigo-750 font-bold font-sans">
+                              * Nelze přerušit výkon služby (+15m)
+                            </span>
+                          )}
+                        </div>
+                      ) : ""}
                     </td>
                   </tr>
                 );

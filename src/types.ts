@@ -13,6 +13,7 @@ export interface DayRecord {
   interruptionFrom: string; // "HH:MM"
   interruptionTo: string; // "HH:MM"
   lunchTaken: boolean; // default: true (unpaid, so deducted) -> if false: no deduction (counted in work hours)
+  secondBreakNotTaken?: boolean; // if true: second break of 15m is NOT deducted and instead +15m added for uninterrupted service -> if false: second break of 15m is deducted
   note: string;
 }
 
@@ -26,6 +27,7 @@ export interface AppSettings {
   defaultArrival: string; // "08:00"
   defaultDeparture: string; // "16:00"
   defaultLunchTaken: boolean; // true
+  defaultSecondBreakNotTaken?: boolean; // default second break state
   dailyWorkFund: number; // 7.5
   employeeName?: string; // e.g. "Lukáš Černý"
 }
