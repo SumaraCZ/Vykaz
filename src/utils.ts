@@ -143,7 +143,7 @@ export function calculateDailyHours(
   // If they did take it, it is deducted by law.
   if (baseNetMins > 540) {
     if (secondBreakNotTaken) {
-      netMins = baseNetMins + 15;
+      netMins = baseNetMins;
     } else {
       netMins = baseNetMins - 15;
     }

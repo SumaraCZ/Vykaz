@@ -1198,13 +1198,39 @@ export default function App() {
                       {/* Calculated Hours Column */}
                       <td className="px-3 py-2 text-right">
                         {rec.arrival && rec.departure ? (
-                          <div className="flex flex-col items-end">
+                          <div className="flex flex-col items-end gap-0.5">
                             <span className={`font-bold font-mono text-base ${isOvertime9 ? 'text-rose-600 font-extrabold' : 'text-slate-900'}`}>
                               {roundedHours.toFixed(2).replace('.', ',')}
                             </span>
                             <span className="text-3xs text-slate-400 font-mono tracking-wide">
                               ({exactTimeStr} čistého)
                             </span>
+                            
+                            {/* Overtime/Missing badge */}
+                            {(() => {
+                              const dailyFund = (rec.isWeekend || rec.isHoliday) ? 0 : settings.dailyWorkFund;
+                              const diff = roundedHours - dailyFund;
+                              if (diff > 0) {
+                                return (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 font-sans mt-0.5 shrink-0">
+                                    +{diff.toFixed(2).replace('.', ',')} h přesčas
+                                  </span>
+                                );
+                              } else if (diff < 0) {
+                                return (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-100 font-sans mt-0.5 shrink-0">
+                                    {diff.toFixed(2).replace('.', ',')} h chybí
+                                  </span>
+                                );
+                              } else {
+                                return (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-50 text-slate-500 border border-slate-100 font-sans mt-0.5 shrink-0">
+                                    splněno (±0)
+                                  </span>
+                                );
+                              }
+                            })()}
+
                             {isOvertime9 && (
                               <span className="inline-block bg-rose-100 text-rose-800 text-[10px] font-semibold px-1 rounded-sm mt-0.5 font-sans shrink-0">
                                 ⚠ Přes 9 hod!
@@ -1931,11 +1957,36 @@ export default function App() {
                         </div>
                       ) : "-"}
                     </td>
-                    <td className="p-2 border border-slate-200 text-right font-mono font-bold text-slate-900">
+                    <td className="p-2 border border-slate-200 text-right font-mono text-slate-900">
                       {rec.arrival && rec.departure ? (
-                        <span className={isOvertime9 ? "text-rose-600 font-extrabold" : ""}>
-                          {roundedHours.toFixed(2).replace('.', ',')} h
-                        </span>
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className={`font-bold ${isOvertime9 ? "text-rose-600 font-extrabold" : "text-slate-900"}`}>
+                            {roundedHours.toFixed(2).replace('.', ',')} h
+                          </span>
+                          {(() => {
+                            const dailyFund = (rec.isWeekend || rec.isHoliday) ? 0 : settings.dailyWorkFund;
+                            const diff = roundedHours - dailyFund;
+                            if (diff > 0) {
+                              return (
+                                <span className="text-[9px] font-bold text-emerald-700 mt-0.5 font-sans">
+                                  +{diff.toFixed(2).replace('.', ',')} h přesčas
+                                </span>
+                              );
+                            } else if (diff < 0) {
+                              return (
+                                <span className="text-[9px] font-bold text-rose-700 mt-0.5 font-sans">
+                                  {diff.toFixed(2).replace('.', ',')} h chybí
+                                </span>
+                              );
+                            } else {
+                              return (
+                                <span className="text-[9px] text-slate-400 mt-0.5 font-sans">
+                                  splněno
+                                </span>
+                              );
+                            }
+                          })()}
+                        </div>
                       ) : (
                         <span className="text-slate-300">-</span>
                       )}
